@@ -2,57 +2,66 @@ using System;
 using System.Collections.Generic;
 using Framework.Engine;
 
-public class PuyoPool : GameObject
+public class PuyoPool
 {
-    private int _x, _y; // 보드 위치랑 상호작용해서 위치 조정할 예정
-    private int _width = 4, _height = 3;
-    private List<Puyo> _pool = new(100); // 보드의 크기는 6*12 + 6*3 (내부 버퍼)이므로 최대 90개 + 여분
+    private int x, y;
+    private Scene _scene;
+    private List<Puyo> _pool; // 보드의 크기는 6*12 + 6*3 (내부 버퍼)이므로 최대 90개 + 여분
     private Random _random = new();
 
-    private (Puyo pivot, Puyo sub) NextPair;
+    private PuyoPair NextPair;
 
-    public PuyoPool(Scene scene, int x, int y) : base(scene)
+    public PuyoPool(Scene scene) { _scene = scene; }
+
+    public void Initialize(int count, Board board)
     {
-        _x = x;
-        _y = y;
+        _pool = new List<Puyo>(count);
+        x = board.EndWidth + 3;
+        y = board.StartHeight + 1;
+
         for (int color = 0; color < 5; color++)
         {
             for (int i = 0; i < 20; i++)
             {
-                _pool.Add(new Puyo(scene, color).Reset(0, 0));
+                _pool.Add(new Puyo(_scene, board, color).SetPosition(x, y).MoveFlag(false));
             }
         }
+        NextPair = new(GetRandomPuyo(true), GetRandomPuyo());
     }
 
-    public override void Update(float deltaTime)
-    {
-        if (NextPair.pivot is null) NextPair.pivot = GetRandomPuyo(true);
-        if (NextPair.sub is null) NextPair.sub = GetRandomPuyo();
-    }
 
-    public override void Draw(ScreenBuffer buffer)
-    {
-        buffer.DrawBox(_x, _y, _width, _height, ConsoleColor.White);
-    }
-
-    public (Puyo pivot, Puyo sub) GetNextPair()
+    public PuyoPair GetNextPair()
     {
         var pair = NextPair;
-        NextPair = (null, null);
+        NextPair = new(GetRandomPuyo(true), GetRandomPuyo());
 
         return pair;
     }
 
+    public void ReturnPuyo(Puyo puyo)
+    {
+        if (puyo is null) return;
+
+        _pool.Add(puyo.Reset(x, y));
+        _scene.RemoveGameObject(puyo);
+    }
+
     private Puyo GetRandomPuyo(bool isPivot = false)
     {
-        if (_pool.Count == 0) return null;
+        if (_pool is null || _pool?.Count == 0) return null;
 
         int idx = _random.Next(_pool.Count);
         Puyo puyo = _pool[idx];
         _pool.RemoveAt(idx);
 
-        this.Scene.AddGameObject(puyo);
+        _scene.AddGameObject(puyo);
 
-        return puyo.SetPosition(_x + (isPivot ? 1 : 2), _y + 1, false).SetPivotFlag(isPivot);
+        return puyo.SetPosition(puyo.Position.X + (isPivot ? 0 : 1), puyo.Position.Y).PivotFlag(isPivot);
+    }
+
+    private void Clear()
+    {
+        _pool.Clear();
+        NextPair = null;
     }
 }

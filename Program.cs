@@ -1,1 +1,1 @@
-﻿PuyoPuyoManager.Instance.Run();
+﻿PuyoPuyoApp.Instance.Run();

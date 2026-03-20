@@ -1,14 +1,14 @@
 using System;
 using Framework.Engine;
 
-public class PuyoPuyoManager : GameApp
+public class PuyoPuyoApp : GameApp
 {
     private static GameApp _instance;
-    public static GameApp Instance => _instance ??= new PuyoPuyoManager();
+    public static GameApp Instance => _instance ??= new PuyoPuyoApp();
 
     private readonly SceneManager<Scene> _scenes = new();
 
-    public PuyoPuyoManager(int width = 50, int height = 20) : base(width, height) { }
+    public PuyoPuyoApp(int width = 50, int height = 20) : base(width, height) { }
 
     protected override void Initialize()
     {

@@ -3,14 +3,14 @@ using Framework.Engine;
 
 public class Board : GameObject
 {
-    private int _x = 4, _y = 0;
+    private const int k_x = 4, k_y = 0;
     private const int k_width = 6, k_height = 15; // 뷰 12칸 + 내부 버퍼 3칸
     private int[] _top = new int[k_width]; // 각 열의 puyo가 쌓인 높이 (0부터 시작)
 
-    public int StartWidth => _x;
-    public int StartHeight => _y + 3; // 내부 버퍼 제외한 실제 보드의 시작 높이
-    public int EndWidth => _x + k_width - 1;
-    public int EndHeight => _y + k_height - 1; // 내부 버퍼 제외한 실제 보드의 끝 높이
+    public int StartWidth => k_x;
+    public int StartHeight => k_y + 3; // 내부 버퍼 제외한 실제 보드의 시작 높이
+    public int EndWidth => k_x + k_width - 1;
+    public int EndHeight => k_y + k_height - 1; // 내부 버퍼 제외한 실제 보드의 끝 높이
 
     public Board(Scene scene) : base(scene)
     {

@@ -4,67 +4,106 @@ using Framework.Engine;
 
 public class Puyo : GameObject
 {
+    private const float k_moveInterval = 1.0f;
+    private readonly Board _board;
+    private readonly ConsoleColor[] _colorSet = {
+        ConsoleColor.Red, ConsoleColor.Blue, ConsoleColor.Green, ConsoleColor.Yellow, ConsoleColor.Magenta
+    };
+    public readonly ConsoleColor Color;
+
     private (int X, int Y) _position;
+    private double _moveTimer;
     private bool _canMove;
     private bool _isPivot;
-    private bool _isChained;
 
     public (int X, int Y) Position => _position;
+    private LinkedList<Puyo> _chain;
 
-    private readonly ConsoleColor[] _colorSet = { ConsoleColor.Red, ConsoleColor.Blue, ConsoleColor.Green, ConsoleColor.Yellow, ConsoleColor.Magenta };
-    public readonly ConsoleColor Color;
-    public readonly LinkedList<Puyo> Chain = new();
-    public int ChainCount => Chain.Count;
+    public bool CanMove => _canMove;
+    public int ChainCount => _chain?.Count ?? 0;
 
-    public Puyo(Scene scene, int colorIndex) : base(scene)
+    public Puyo(Scene scene, Board board, int colorIndex) : base(scene)
     {
         Name = "Puyo";
         Color = _colorSet[colorIndex];
+        _board = board;
     }
 
     public override void Update(float deltaTime)
     {
-        // if (!_canMove || _isBlocked) return;
+        if (!_canMove) return;
+
+        _moveTimer += deltaTime;
+        if (_moveTimer < k_moveInterval) return;
+
+        var newPos = (_position.X, y: _position.Y + 1);
+        if (MoveCheck(newPos))
+        {
+            SetPosition(_position.X, _position.Y + 1);
+        }
+        else
+        {
+            _canMove = false;
+            _isPivot = false;
+            _board[Position.X - _board.StartWidth]++;
+        }
+
+        _moveTimer = 0;
     }
 
     public override void Draw(ScreenBuffer buffer)
     {
         buffer.SetCell(
             _position.X, _position.Y,
-            _isChained ? '■' : '●',
+            ChainCount > 0 ? '■' : '●',
             _isPivot ? Color : Color - 8);
     }
 
-    public (int x, int y) GetPositionFromOffset((int x, int y) offset)
-    {
-        int newX = _position.X + offset.x;
-        int newY = _position.Y + offset.y;
+    public bool MoveCheck((int x, int y) position) => _board.CanPlacePuyo(position);
 
-        return (newX, newY);
-    }
+    public (int x, int y) GetPositionFromOffset((int x, int y) offset) => (Position.X + offset.x, Position.Y + offset.y);
 
-    public Puyo SetPosition(int x, int y, bool canMove = true)
+    public Puyo SetPosition(int x, int y) => SetPosition((x, y));
+    public Puyo SetPosition((int x, int y) position)
     {
-        _position = (x, y);
-        _canMove = canMove;
+        _position = position;
 
         return this;
     }
 
-    public Puyo SetPivotFlag(bool isPivot)
+    public Puyo MoveFlag(bool canMove = true)
+    {
+        _canMove = canMove;
+
+        if (_canMove)
+        {
+            _chain?.Remove(this);
+            _chain = null;
+        }
+
+        return this;
+    }
+
+    public Puyo PivotFlag(bool isPivot = true)
     {
         _isPivot = isPivot;
 
         return this;
     }
 
-    public Puyo Reset(int x, int y)
+    public Puyo Chaining(Puyo puyo)
+    {
+
+
+        return this;
+    }
+
+    public Puyo Reset(int x = 0, int y = 0)
     {
         _position = (x, y);
         _canMove = false;
         _isPivot = false;
-        _isChained = false;
-        Chain.Clear();
+        _chain?.Clear();
 
         return this;
     }
