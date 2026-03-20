@@ -20,7 +20,6 @@ public class Puyo : GameObject
     private LinkedList<Puyo> _chain;
 
     public bool CanMove => _canMove;
-    public LinkedList<Puyo> Chain => _chain;
     public int ChainCount => _chain?.Count ?? 1;
 
     public Puyo(Scene scene, Board board, int colorIndex) : base(scene)
@@ -56,7 +55,7 @@ public class Puyo : GameObject
     {
         buffer.SetCell(
             _position.X, _position.Y,
-            ChainCount > 1 ? '■' : '●',
+            ChainCount > 1 ? ChainCount < 4 ? '■' : '※' : '●',
             _isPivot ? Color : Color - 8);
     }
 
@@ -76,13 +75,13 @@ public class Puyo : GameObject
     {
         foreach (var puyo in _chain)
         {
-            if (!target.Chain.Contains(puyo))
+            if (!target._chain.Contains(puyo))
             {
-                puyo._chain = target.Chain;
-                target.Chain.AddLast(puyo);
+                puyo._chain = target._chain;
+                target._chain.AddLast(puyo);
             }
         }
-        _chain = target.Chain;
+        _chain = target._chain;
     }
 
     public Puyo MoveFlag(bool canMove = true)

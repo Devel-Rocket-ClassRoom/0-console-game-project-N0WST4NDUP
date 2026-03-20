@@ -39,7 +39,10 @@ public class PlayScene : Scene
         {
             if (_pair.IsStuck())
             {
-                _inProgress = false;
+                // TODO: 연쇄 구현
+                if (_pair.Pivot.ChainCount >= 4) _isGameOver = true;
+                else if (_pair.Sub.ChainCount >= 4) _isGameOver = true;
+                else _inProgress = false;
             }
 
         }
