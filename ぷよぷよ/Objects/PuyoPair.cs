@@ -13,6 +13,22 @@ public class PuyoPair
 
     public bool IsStuck() => !Pivot.CanMove && !Sub.CanMove;
 
+    public void MoveDown(Board board)
+    {
+        if (!Pivot.CanMove || !Sub.CanMove) return;
+
+        Puyo targetPuyo;
+        if (_isVertical) { targetPuyo = Pivot.Position.Y > Sub.Position.Y ? Pivot : Sub; }
+        else { targetPuyo = board[Pivot.Position.X - board.StartWidth].Count > board[Sub.Position.X - board.StartWidth].Count ? Pivot : Sub; }
+
+        var newPos = (x: targetPuyo.Position.X, y: targetPuyo.Position.Y + 1);
+        if (targetPuyo.MoveCheck(newPos))
+        {
+            Pivot.SetPosition(Pivot.Position.X, Pivot.Position.Y + 1);
+            Sub.SetPosition(Sub.Position.X, Sub.Position.Y + 1);
+        }
+    }
+
     public void MoveLeft()
     {
         if (!Pivot.CanMove || !Sub.CanMove) return;
@@ -35,7 +51,7 @@ public class PuyoPair
 
         Puyo targetPuyo;
         if (_isVertical) { targetPuyo = Pivot.Position.Y > Sub.Position.Y ? Pivot : Sub; }
-        else { targetPuyo = Pivot.Position.X < Sub.Position.X ? Pivot : Sub; }
+        else { targetPuyo = Pivot.Position.X < Sub.Position.X ? Sub : Pivot; }
 
         var newPos = (x: targetPuyo.Position.X + 1, y: targetPuyo.Position.Y);
         if (targetPuyo.MoveCheck(newPos))

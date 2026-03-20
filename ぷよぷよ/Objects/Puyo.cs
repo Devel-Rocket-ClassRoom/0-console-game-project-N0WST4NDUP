@@ -4,7 +4,7 @@ using Framework.Engine;
 
 public class Puyo : GameObject
 {
-    private const float k_moveInterval = 1.0f;
+    private const float k_moveInterval = 0.5f;
     private readonly Board _board;
     private readonly ConsoleColor[] _colorSet = {
         ConsoleColor.Red, ConsoleColor.Blue, ConsoleColor.Green, ConsoleColor.Yellow, ConsoleColor.Magenta
@@ -20,7 +20,8 @@ public class Puyo : GameObject
     private LinkedList<Puyo> _chain;
 
     public bool CanMove => _canMove;
-    public int ChainCount => _chain?.Count ?? 0;
+    public LinkedList<Puyo> Chain => _chain;
+    public int ChainCount => _chain?.Count ?? 1;
 
     public Puyo(Scene scene, Board board, int colorIndex) : base(scene)
     {
@@ -36,16 +37,16 @@ public class Puyo : GameObject
         _moveTimer += deltaTime;
         if (_moveTimer < k_moveInterval) return;
 
-        var newPos = (_position.X, y: _position.Y + 1);
+        var newPos = (_position.X, _position.Y + 1);
         if (MoveCheck(newPos))
         {
-            SetPosition(_position.X, _position.Y + 1);
+            SetPosition(newPos);
         }
         else
         {
-            _canMove = false;
-            _isPivot = false;
-            _board[Position.X - _board.StartWidth]++;
+            MoveFlag(false);
+            PivotFlag(false);
+            _board[Position.X - _board.StartWidth].Add(this);
         }
 
         _moveTimer = 0;
@@ -55,7 +56,7 @@ public class Puyo : GameObject
     {
         buffer.SetCell(
             _position.X, _position.Y,
-            ChainCount > 0 ? '■' : '●',
+            ChainCount > 1 ? '■' : '●',
             _isPivot ? Color : Color - 8);
     }
 
@@ -71,6 +72,19 @@ public class Puyo : GameObject
         return this;
     }
 
+    public void Chaining(Puyo target)
+    {
+        foreach (var puyo in _chain)
+        {
+            if (!target.Chain.Contains(puyo))
+            {
+                puyo._chain = target.Chain;
+                target.Chain.AddLast(puyo);
+            }
+        }
+        _chain = target.Chain;
+    }
+
     public Puyo MoveFlag(bool canMove = true)
     {
         _canMove = canMove;
@@ -80,6 +94,34 @@ public class Puyo : GameObject
             _chain?.Remove(this);
             _chain = null;
         }
+        else
+        {
+            _chain ??= new LinkedList<Puyo>();
+            _chain.AddLast(this);
+
+            (int x, int y)[] offset = { (0, 1), (-1, 0), (1, 0) }; // 아래, 왼쪽, 오른쪽
+            foreach (var off in offset)
+            {
+                var position = GetPositionFromOffset(off);
+                if (position.x < _board.StartWidth || position.x > _board.EndWidth || position.y < _board.StartHeight || position.y > _board.EndHeight) continue;
+
+                var targetLine = _board[position.x - _board.StartWidth];
+                var targetIdx = _board.EndHeight - position.y;
+                if (targetIdx >= targetLine.Count) continue; // 해당 위치에 puyo 없으면 패스
+
+                var targetPuyo = targetLine[targetIdx];
+                if (targetPuyo.Color != this.Color) continue; // 색상이 다르면 패스
+
+                if (targetPuyo.ChainCount > this.ChainCount) // 체인 수가 더 많은 쪽에 붙기
+                {
+                    Chaining(targetPuyo);
+                }
+                else
+                {
+                    targetPuyo.Chaining(this);
+                }
+            }
+        }
 
         return this;
     }
@@ -87,13 +129,6 @@ public class Puyo : GameObject
     public Puyo PivotFlag(bool isPivot = true)
     {
         _isPivot = isPivot;
-
-        return this;
-    }
-
-    public Puyo Chaining(Puyo puyo)
-    {
-
 
         return this;
     }
@@ -108,20 +143,4 @@ public class Puyo : GameObject
         return this;
     }
 
-    public static bool operator ==(Puyo a, Puyo b)
-    {
-        if (a is null)
-        {
-            if (b is null)
-            {
-                return true;
-            }
-
-            return false;
-        }
-        return a.Equals(b);
-    }
-    public static bool operator !=(Puyo a, Puyo b) => !(a == b);
-    public override bool Equals(object? obj) => Color.Equals((obj as Puyo)?.Color);
-    public override int GetHashCode() => Color.GetHashCode();
 }

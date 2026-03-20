@@ -8,6 +8,7 @@ public class PlayScene : Scene
     private PuyoPool _pool;
 
     private bool _inProgress;
+    private bool _inChaining;
     private bool _isGameOver;
 
     private PuyoPair _pair;
@@ -34,7 +35,7 @@ public class PlayScene : Scene
         HandleInput();
         UpdateGameObjects(deltaTime);
 
-        if (_inProgress)
+        if (_inProgress || _inChaining)
         {
             if (_pair.IsStuck())
             {
@@ -58,13 +59,13 @@ public class PlayScene : Scene
         {
             if (_isVertical)
             {
-                buffer.SetCell(_pair.Pivot.Position.X, _board.EndHeight - _board[_pair.Pivot.Position.X - _board.StartWidth], '⊙', ConsoleColor.DarkGray);
-                buffer.SetCell(_pair.Sub.Position.X, _board.EndHeight - _board[_pair.Sub.Position.X - _board.StartWidth] - 1, '⊙', ConsoleColor.DarkGray);
+                buffer.SetCell(_pair.Pivot.Position.X, _board.EndHeight - _board[_pair.Pivot.Position.X - _board.StartWidth].Count, '⊙', ConsoleColor.DarkGray);
+                buffer.SetCell(_pair.Sub.Position.X, _board.EndHeight - _board[_pair.Sub.Position.X - _board.StartWidth].Count - 1, '⊙', ConsoleColor.DarkGray);
             }
             else
             {
-                buffer.SetCell(_pair.Pivot.Position.X, _board.EndHeight - _board[_pair.Pivot.Position.X - _board.StartWidth], '⊙', ConsoleColor.DarkGray);
-                buffer.SetCell(_pair.Sub.Position.X, _board.EndHeight - _board[_pair.Sub.Position.X - _board.StartWidth], '⊙', ConsoleColor.DarkGray);
+                buffer.SetCell(_pair.Pivot.Position.X, _board.EndHeight - _board[_pair.Pivot.Position.X - _board.StartWidth].Count, '⊙', ConsoleColor.DarkGray);
+                buffer.SetCell(_pair.Sub.Position.X, _board.EndHeight - _board[_pair.Sub.Position.X - _board.StartWidth].Count, '⊙', ConsoleColor.DarkGray);
             }
         }
 
@@ -73,7 +74,8 @@ public class PlayScene : Scene
 
     private void HandleInput()
     {
-        if (Input.IsKeyDown(ConsoleKey.LeftArrow)) _pair.MoveLeft();
+        if (Input.IsKeyDown(ConsoleKey.DownArrow)) _pair.MoveDown(_board);
+        else if (Input.IsKeyDown(ConsoleKey.LeftArrow)) _pair.MoveLeft();
         else if (Input.IsKeyDown(ConsoleKey.RightArrow)) _pair.MoveRight();
         else if (Input.IsKeyDown(ConsoleKey.Z)) _pair.RotateCCW();
         else if (Input.IsKeyDown(ConsoleKey.X)) _pair.RotateCW();
