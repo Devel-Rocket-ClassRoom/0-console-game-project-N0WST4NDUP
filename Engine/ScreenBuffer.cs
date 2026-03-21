@@ -133,6 +133,19 @@ namespace Framework.Engine
             DrawVLine(x + width - 1, y + 1, height - 2, '┃', color, bgColor);
         }
 
+        public void DrawBox(int x, int y, int width, int height, char c, ConsoleColor color = ConsoleColor.Gray, ConsoleColor bgColor = ConsoleColor.Black)
+        {
+            SetCell(x, y, c, color, bgColor);
+            SetCell(x + width - 1, y, c, color, bgColor);
+            SetCell(x, y + height - 1, c, color, bgColor);
+            SetCell(x + width - 1, y + height - 1, c, color, bgColor);
+
+            DrawHLine(x + 1, y, width - 2, c, color, bgColor);
+            DrawHLine(x + 1, y + height - 1, width - 2, c, color, bgColor);
+            DrawVLine(x, y + 1, height - 2, c, color, bgColor);
+            DrawVLine(x + width - 1, y + 1, height - 2, c, color, bgColor);
+        }
+
         public void FillRect(int x, int y, int width, int height, char ch = ' ', ConsoleColor color = ConsoleColor.Gray, ConsoleColor bgColor = ConsoleColor.Black)
         {
             for (int row = 0; row < height; row++)

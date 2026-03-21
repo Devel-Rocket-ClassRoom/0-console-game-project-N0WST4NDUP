@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Framework.Engine;
 
 public class PlayScene : Scene
@@ -62,7 +63,7 @@ public class PlayScene : Scene
                 {
                     if (_afterProcessLine[i])
                     {
-                        foreach (var puyo in _board[i])
+                        foreach (var puyo in _board[i].ToList())
                         {
                             puyo.MoveFlag(true);
                         }
@@ -81,9 +82,14 @@ public class PlayScene : Scene
         }
         else
         {
+            if (_pair?.Pivot.Position.Y < _board.StartHeight || _pair?.Sub.Position.Y < _board.StartHeight)
+            {
+                _isGameOver = true;
+            }
+
             _pair = _pool.GetNextPair();
-            _pair.Pivot.SetPosition(_board.StartWidth + 2, _board.StartHeight).MoveFlag(true);
-            _pair.Sub.SetPosition(_board.StartWidth + 3, _board.StartHeight).MoveFlag(true);
+            _pair.Pivot.SetPosition(_board.StartWidth + 2, _board.StartHeight - 3).MoveFlag(true);
+            _pair.Sub.SetPosition(_board.StartWidth + 3, _board.StartHeight - 3).MoveFlag(true);
             _inProgress = true;
         }
 
@@ -106,10 +112,11 @@ public class PlayScene : Scene
                     _pair.Sub.Position.X, _board.EndHeight - _board[_pair.Sub.Line].Count, '⊙', ConsoleColor.DarkGray);
             }
         }
-        buffer.WriteText(_board.EndWidth + 3, _board.EndHeight - 2, "이동: ←, →", ConsoleColor.White);
-        buffer.WriteText(_board.EndWidth + 3, _board.EndHeight - 1, "회전: Z, X", ConsoleColor.White);
-        buffer.WriteText(_board.EndWidth + 3, _board.EndHeight, "종료: ESC", ConsoleColor.White);
+        buffer.WriteText(_board.EndWidth + 3, _board.EndHeight - 2, "이동:←,→", ConsoleColor.White);
+        buffer.WriteText(_board.EndWidth + 3, _board.EndHeight - 1, "회전:Z,X", ConsoleColor.White);
+        buffer.WriteText(_board.EndWidth + 3, _board.EndHeight, "종료:ESC", ConsoleColor.White);
         DrawGameObjects(buffer);
+        buffer.DrawBox(_board.StartWidth, _board.StartHeight - 3, _board.StartWidth, _board.StartHeight - 1, ' ', ConsoleColor.White); // 내부 버퍼공간 가리기용
     }
 
     private void HandleInput()

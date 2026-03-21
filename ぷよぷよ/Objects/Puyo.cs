@@ -12,13 +12,13 @@ public class Puyo : GameObject
     public readonly ConsoleColor Color;
 
     private (int X, int Y) _position;
-    private double _moveTimer;
+    private float _moveTimer;
     private bool _canMove;
     private bool _isPivot;
 
     public (int X, int Y) Position => _position;
     private LinkedList<Puyo> _chain;
-    public int Line => Position.X - _board.StartWidth;
+    public int Line => _position.X - _board.StartWidth;
 
     public bool CanMove => _canMove;
     public int ChainCount => _chain?.Count ?? 1;
@@ -106,6 +106,7 @@ public class Puyo : GameObject
 
         if (_canMove)
         {
+            _board[Line].Remove(this);
             _chain?.Remove(this);
             _chain = null;
             s_MovedCount++;
@@ -132,6 +133,8 @@ public class Puyo : GameObject
                 // 색상이 다르면 패스
                 if (targetPuyo.Color != this.Color) continue;
 
+                // 같은 참조면 패스
+                if (targetPuyo._chain == this._chain) continue;
                 if (targetPuyo.ChainCount > this.ChainCount) // 체인 수가 더 많은 쪽에 붙기
                 {
                     ChainingTo(targetPuyo);

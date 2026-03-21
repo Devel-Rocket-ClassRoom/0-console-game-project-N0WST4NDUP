@@ -17,6 +17,5 @@ public partial class TitleScene : Scene
 
     public override void Draw(ScreenBuffer buffer)
     {
-        buffer.WriteTextCentered(5, _logo);
     }
 }

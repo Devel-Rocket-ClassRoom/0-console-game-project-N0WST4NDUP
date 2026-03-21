@@ -6,7 +6,7 @@ public class Board : GameObject
 {
     private const int k_x = 4, k_y = 0;
     private const int k_width = 6, k_height = 15; // 뷰 12칸 + 내부 버퍼 3칸
-    private List<Puyo>[] _top = new List<Puyo>[k_width]; // 각 열의 puyo가 쌓인 높이 (0부터 시작)
+    private List<Puyo>[] _lines = new List<Puyo>[k_width]; // 각 열의 puyo가 쌓인 높이 (0부터 시작)
 
     public int StartWidth => k_x;
     public int StartHeight => k_y + 3; // 내부 버퍼 제외한 실제 보드의 시작 높이
@@ -17,9 +17,9 @@ public class Board : GameObject
     {
         Name = "Board";
 
-        for (int i = 0; i < _top.Length; i++)
+        for (int i = 0; i < _lines.Length; i++)
         {
-            _top[i] = new List<Puyo>();
+            _lines[i] = new List<Puyo>();
         }
     }
 
@@ -30,21 +30,26 @@ public class Board : GameObject
     public override void Draw(ScreenBuffer buffer)
     {
         buffer.DrawBox(StartWidth - 1, StartHeight - 1, k_width + 2, k_height - StartHeight + 2, ConsoleColor.White);
-        for (int i = 0; i < _top.Length; i++)
-        {
-            buffer.WriteText(i, 0, $"{_top[i].Count}");
-        }
+        buffer.DrawBox(EndWidth + 3, StartHeight - 1, 4, 3, ConsoleColor.White);
     }
 
-    public List<Puyo> this[int index] => _top[index];
+    public List<Puyo> this[int index] => _lines[index];
 
     public bool CanPlacePuyo((int x, int y) position)
     {
         if (position.x < StartWidth || position.x > EndWidth || position.y < StartHeight - 3 || position.y > EndHeight) return false;
 
-        int column = position.x - StartWidth;
-        int height = EndHeight - _top[column].Count;
+        var line = _lines[position.x - StartWidth];
+        int targetIdx = EndHeight - position.y;
+        if (line.Count <= targetIdx) return true;
 
-        return position.y <= height;
+        var puyo = line[targetIdx];
+        if (puyo.Position.Y < position.y) return true;
+
+        return false;
+        // int column = position.x - StartWidth;
+        // int height = EndHeight - _line[column].Count;
+
+        // return position.y <= height;
     }
-}
+};

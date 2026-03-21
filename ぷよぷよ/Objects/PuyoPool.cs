@@ -16,7 +16,7 @@ public class PuyoPool
     public void Initialize(int count, Board board)
     {
         _pool = new List<Puyo>(count);
-        x = board.EndWidth + 3;
+        x = board.EndWidth + 4;
         y = board.StartHeight;
 
         for (int color = 0; color < 5; color++)
