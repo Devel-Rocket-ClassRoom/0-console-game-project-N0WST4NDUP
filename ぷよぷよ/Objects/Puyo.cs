@@ -141,8 +141,7 @@ public class Puyo : GameObject
                 }
                 else
                 {
-                    _chain.AddLast(targetPuyo); // 내가 가지고 있는 체인에 타겟 추가 후
-                    targetPuyo._chain = _chain; // 참조 복사
+                    targetPuyo.ChainingTo(this);
                 }
             }
 
