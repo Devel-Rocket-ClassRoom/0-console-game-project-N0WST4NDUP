@@ -17,13 +17,13 @@ public class PuyoPool
     {
         _pool = new List<Puyo>(count);
         x = board.EndWidth + 3;
-        y = board.StartHeight + 1;
+        y = board.StartHeight;
 
         for (int color = 0; color < 5; color++)
         {
             for (int i = 0; i < 20; i++)
             {
-                _pool.Add(new Puyo(_scene, board, color).SetPosition(x, y).MoveFlag(false));
+                _pool.Add(new Puyo(_scene, board, color).Reset(x, y));
             }
         }
         NextPair = new(GetRandomPuyo(true), GetRandomPuyo());
@@ -59,7 +59,7 @@ public class PuyoPool
         return puyo.SetPosition(puyo.Position.X + (isPivot ? 0 : 1), puyo.Position.Y).PivotFlag(isPivot);
     }
 
-    private void Clear()
+    public void Clear()
     {
         _pool.Clear();
         NextPair = null;

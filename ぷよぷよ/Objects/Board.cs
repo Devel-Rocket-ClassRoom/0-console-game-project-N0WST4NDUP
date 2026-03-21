@@ -30,10 +30,10 @@ public class Board : GameObject
     public override void Draw(ScreenBuffer buffer)
     {
         buffer.DrawBox(StartWidth - 1, StartHeight - 1, k_width + 2, k_height - StartHeight + 2, ConsoleColor.White);
-        // for (int i = 0; i < _top.Length; i++)
-        // {
-        //     buffer.SetCell(StartWidth + i, EndHeight - _top[i] - 1, '⊙', ConsoleColor.DarkGray);
-        // }
+        for (int i = 0; i < _top.Length; i++)
+        {
+            buffer.WriteText(i, 0, $"{_top[i].Count}");
+        }
     }
 
     public List<Puyo> this[int index] => _top[index];

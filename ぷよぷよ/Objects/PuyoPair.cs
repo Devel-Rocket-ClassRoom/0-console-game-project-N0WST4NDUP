@@ -19,7 +19,7 @@ public class PuyoPair
 
         Puyo targetPuyo;
         if (_isVertical) { targetPuyo = Pivot.Position.Y > Sub.Position.Y ? Pivot : Sub; }
-        else { targetPuyo = board[Pivot.Position.X - board.StartWidth].Count > board[Sub.Position.X - board.StartWidth].Count ? Pivot : Sub; }
+        else { targetPuyo = board[Pivot.Line].Count > board[Sub.Line].Count ? Pivot : Sub; }
 
         var newPos = (x: targetPuyo.Position.X, y: targetPuyo.Position.Y + 1);
         if (targetPuyo.MoveCheck(newPos))

@@ -1,5 +1,5 @@
 using System;
-using System.Reflection.Metadata;
+using System.Collections.Generic;
 using Framework.Engine;
 
 public class PlayScene : Scene
@@ -8,11 +8,14 @@ public class PlayScene : Scene
     private PuyoPool _pool;
 
     private bool _inProgress;
-    private bool _inChaining;
     private bool _isGameOver;
 
     private PuyoPair _pair;
     private bool _isVertical => _pair?.Pivot.Position.X == _pair?.Sub.Position.X; // true: 수직, false: 수평
+
+    public static HashSet<LinkedList<Puyo>> ChainOfPuyos = new();
+    private bool[] _afterProcessLine = new bool[6];
+    private int _processCount = 0;
 
     public override void Load()
     {
@@ -25,6 +28,8 @@ public class PlayScene : Scene
 
     public override void Unload()
     {
+        _board = null;
+        _pool = null; // 안에 있는 오브젝트들도 밑에서 참조 끊길 테니 이렇게만
         ClearGameObjects();
     }
 
@@ -35,14 +40,42 @@ public class PlayScene : Scene
         HandleInput();
         UpdateGameObjects(deltaTime);
 
-        if (_inProgress || _inChaining)
+        if (_inProgress)
         {
-            if (_pair.IsStuck())
+            if (Puyo.s_MovedCount > 0)
             {
-                // TODO: 연쇄 구현
-                if (_pair.Pivot.ChainCount >= 4) _isGameOver = true;
-                else if (_pair.Sub.ChainCount >= 4) _isGameOver = true;
-                else _inProgress = false;
+            }
+            else if (ChainOfPuyos.Count > 0)
+            {
+                foreach (var chain in ChainOfPuyos)
+                {
+                    foreach (var puyo in chain)
+                    {
+                        _board[puyo.Line].Remove(puyo);
+                        _afterProcessLine[puyo.Line] = true;
+                        _pool.ReturnPuyo(puyo);
+                    }
+                    ChainOfPuyos.Remove(chain);
+                }
+
+                for (int i = 0; i < _afterProcessLine.Length; i++)
+                {
+                    if (_afterProcessLine[i])
+                    {
+                        foreach (var puyo in _board[i])
+                        {
+                            puyo.MoveFlag(true);
+                        }
+                    }
+                    _afterProcessLine[i] = false;
+                }
+
+                _processCount++;
+            }
+            else
+            {
+                _inProgress = false;
+                _processCount = 0;
             }
 
         }
@@ -58,20 +91,24 @@ public class PlayScene : Scene
 
     public override void Draw(ScreenBuffer buffer)
     {
-        if (_pair is not null && !_pair.IsStuck())
+        if (_pair is not null && _pair.Pivot.CanMove && _pair.Sub.CanMove)
         {
+            buffer.SetCell(
+                    _pair.Pivot.Position.X, _board.EndHeight - _board[_pair.Pivot.Line].Count, '⊙', ConsoleColor.DarkGray);
             if (_isVertical)
             {
-                buffer.SetCell(_pair.Pivot.Position.X, _board.EndHeight - _board[_pair.Pivot.Position.X - _board.StartWidth].Count, '⊙', ConsoleColor.DarkGray);
-                buffer.SetCell(_pair.Sub.Position.X, _board.EndHeight - _board[_pair.Sub.Position.X - _board.StartWidth].Count - 1, '⊙', ConsoleColor.DarkGray);
+                buffer.SetCell(
+                    _pair.Sub.Position.X, _board.EndHeight - _board[_pair.Sub.Line].Count - 1, '⊙', ConsoleColor.DarkGray);
             }
             else
             {
-                buffer.SetCell(_pair.Pivot.Position.X, _board.EndHeight - _board[_pair.Pivot.Position.X - _board.StartWidth].Count, '⊙', ConsoleColor.DarkGray);
-                buffer.SetCell(_pair.Sub.Position.X, _board.EndHeight - _board[_pair.Sub.Position.X - _board.StartWidth].Count, '⊙', ConsoleColor.DarkGray);
+                buffer.SetCell(
+                    _pair.Sub.Position.X, _board.EndHeight - _board[_pair.Sub.Line].Count, '⊙', ConsoleColor.DarkGray);
             }
         }
-
+        buffer.WriteText(_board.EndWidth + 3, _board.EndHeight - 2, "이동: ←, →", ConsoleColor.White);
+        buffer.WriteText(_board.EndWidth + 3, _board.EndHeight - 1, "회전: Z, X", ConsoleColor.White);
+        buffer.WriteText(_board.EndWidth + 3, _board.EndHeight, "종료: ESC", ConsoleColor.White);
         DrawGameObjects(buffer);
     }
 

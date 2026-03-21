@@ -18,9 +18,11 @@ public class Puyo : GameObject
 
     public (int X, int Y) Position => _position;
     private LinkedList<Puyo> _chain;
+    public int Line => Position.X - _board.StartWidth;
 
     public bool CanMove => _canMove;
     public int ChainCount => _chain?.Count ?? 1;
+    public static int s_MovedCount { get; private set; }
 
     public Puyo(Scene scene, Board board, int colorIndex) : base(scene)
     {
@@ -39,13 +41,13 @@ public class Puyo : GameObject
         var newPos = (_position.X, _position.Y + 1);
         if (MoveCheck(newPos))
         {
-            SetPosition(newPos);
+            SetPosition(newPos).NextStepCheck();
         }
         else
         {
-            MoveFlag(false);
-            PivotFlag(false);
             _board[Position.X - _board.StartWidth].Add(this);
+            PivotFlag(false);
+            MoveFlag(false);
         }
 
         _moveTimer = 0;
@@ -55,7 +57,8 @@ public class Puyo : GameObject
     {
         buffer.SetCell(
             _position.X, _position.Y,
-            ChainCount > 1 ? ChainCount < 4 ? '■' : '※' : '●',
+            // ChainCount > 1 ? ChainCount < 4 ? '■' : ' ' : '●',
+            ChainCount > 1 ? '■' : '●',
             _isPivot ? Color : Color - 8);
     }
 
@@ -71,7 +74,7 @@ public class Puyo : GameObject
         return this;
     }
 
-    public void Chaining(Puyo target)
+    public void ChainingTo(Puyo target)
     {
         foreach (var puyo in _chain)
         {
@@ -84,6 +87,19 @@ public class Puyo : GameObject
         _chain = target._chain;
     }
 
+    public Puyo NextStepCheck()
+    {
+        var nextStep = (_position.X, _position.Y + 1);
+        if (!_board.CanPlacePuyo(nextStep))
+        {
+            _board[Position.X - _board.StartWidth].Add(this);
+            PivotFlag(false);
+            MoveFlag(false);
+        }
+
+        return this;
+    }
+
     public Puyo MoveFlag(bool canMove = true)
     {
         _canMove = canMove;
@@ -92,6 +108,7 @@ public class Puyo : GameObject
         {
             _chain?.Remove(this);
             _chain = null;
+            s_MovedCount++;
         }
         else
         {
@@ -102,24 +119,33 @@ public class Puyo : GameObject
             foreach (var off in offset)
             {
                 var position = GetPositionFromOffset(off);
-                if (position.x < _board.StartWidth || position.x > _board.EndWidth || position.y < _board.StartHeight || position.y > _board.EndHeight) continue;
+                //해당 위치가 보드 밖이면 패스
+                if (position.x < _board.StartWidth || position.x > _board.EndWidth ||
+                    position.y < _board.StartHeight || position.y > _board.EndHeight) continue;
 
                 var targetLine = _board[position.x - _board.StartWidth];
                 var targetIdx = _board.EndHeight - position.y;
-                if (targetIdx >= targetLine.Count) continue; // 해당 위치에 puyo 없으면 패스
+                // 해당 위치에 puyo 없으면 패스
+                if (targetIdx >= targetLine.Count) continue;
 
                 var targetPuyo = targetLine[targetIdx];
-                if (targetPuyo.Color != this.Color) continue; // 색상이 다르면 패스
+                // 색상이 다르면 패스
+                if (targetPuyo.Color != this.Color) continue;
 
                 if (targetPuyo.ChainCount > this.ChainCount) // 체인 수가 더 많은 쪽에 붙기
                 {
-                    Chaining(targetPuyo);
+                    ChainingTo(targetPuyo);
                 }
                 else
                 {
-                    targetPuyo.Chaining(this);
+                    _chain.AddLast(targetPuyo); // 내가 가지고 있는 체인에 타겟 추가 후
+                    targetPuyo._chain = _chain; // 참조 복사
                 }
             }
+
+            if (_chain.Count >= 4) PlayScene.ChainOfPuyos.Add(_chain);
+
+            s_MovedCount--;
         }
 
         return this;
@@ -137,7 +163,7 @@ public class Puyo : GameObject
         _position = (x, y);
         _canMove = false;
         _isPivot = false;
-        _chain?.Clear();
+        _chain = null;
 
         return this;
     }
