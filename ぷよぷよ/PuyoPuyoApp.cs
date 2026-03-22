@@ -12,7 +12,7 @@ public class PuyoPuyoApp : GameApp
 
     protected override void Initialize()
     {
-        ChangeToPlay();
+        ChangeToTitle();
     }
 
     protected override void Update(float deltaTime)
@@ -33,6 +33,9 @@ public class PuyoPuyoApp : GameApp
 
     private void ChangeToTitle()
     {
+        TitleScene scene = new();
+        scene.StartRequested += ChangeToPlay;
+        _scenes.ChangeScene(scene);
     }
 
     private void ChangeToPlay()

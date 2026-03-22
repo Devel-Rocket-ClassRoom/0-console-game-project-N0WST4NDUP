@@ -5,6 +5,7 @@ public class Score : GameObject
 {
     private int _x, _y;
     private int _score;
+    private int _maxScore;
 
     public Score(Scene scene, int x, int y) : base(scene)
     {
@@ -19,6 +20,7 @@ public class Score : GameObject
     public override void Draw(ScreenBuffer buffer)
     {
         buffer.WriteText(_x, _y, $"점수:{_score}");
+        buffer.WriteText(_x, _y + 1, $"최고 점수:{_score}");
     }
 
     public void Initialize()
@@ -29,5 +31,6 @@ public class Score : GameObject
     public void SetScore(int chainCount, int processCount)
     {
         _score += (2 + chainCount) * processCount;
+        _maxScore = Math.Max(_score, _maxScore);
     }
 }

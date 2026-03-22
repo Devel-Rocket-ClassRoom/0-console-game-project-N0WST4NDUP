@@ -41,9 +41,10 @@ public class PlayScene : Scene
 
     public override void Update(float deltaTime)
     {
+        HandleInput();
+
         if (_isGameOver) return;
 
-        HandleInput();
         UpdateGameObjects(deltaTime);
 
         if (_inProgress)
@@ -99,12 +100,11 @@ public class PlayScene : Scene
             _pair.Sub.SetPosition(_board.StartWidth + 3, _board.StartHeight - 3).MoveFlag(true);
             _inProgress = true;
         }
-
     }
 
     public override void Draw(ScreenBuffer buffer)
     {
-        if (_pair is not null && _pair.Pivot.CanMove && _pair.Sub.CanMove)
+        if (!_isGameOver && _pair is not null && _pair.Pivot.CanMove && _pair.Sub.CanMove)
         {
             buffer.SetCell(
                     _pair.Pivot.Position.X, _board.EndHeight - _board[_pair.Pivot.Line].Count, '⊙', ConsoleColor.DarkGray);
@@ -126,15 +126,45 @@ public class PlayScene : Scene
         DrawGameObjects(buffer);
 
         // 내부 버퍼공간 가리기용
-        buffer.DrawBox(_board.StartWidth, _board.StartHeight - 3, 6, 2, ' ', ConsoleColor.White);
+        buffer.DrawBox(_board.StartWidth, _board.StartHeight - 3, 6, 2, ' ');
+
+        if (_isGameOver)
+        {
+            buffer.WriteText(7, 8, "Game Over", ConsoleColor.DarkRed);
+            buffer.WriteText(4, 9, "ENTER to Restart.");
+        }
     }
 
     private void HandleInput()
     {
-        if (Input.IsKeyDown(ConsoleKey.DownArrow)) _pair.MoveDown(_board);
-        else if (Input.IsKeyDown(ConsoleKey.LeftArrow)) _pair.MoveLeft();
-        else if (Input.IsKeyDown(ConsoleKey.RightArrow)) _pair.MoveRight();
-        else if (Input.IsKeyDown(ConsoleKey.Z)) _pair.RotateCCW();
-        else if (Input.IsKeyDown(ConsoleKey.X)) _pair.RotateCW();
+        if (!_isGameOver)
+        {
+            if (Input.IsKeyDown(ConsoleKey.DownArrow)) _pair.MoveDown(_board);
+            else if (Input.IsKeyDown(ConsoleKey.LeftArrow)) _pair.MoveLeft();
+            else if (Input.IsKeyDown(ConsoleKey.RightArrow)) _pair.MoveRight();
+            else if (Input.IsKeyDown(ConsoleKey.Z)) _pair.RotateCCW();
+            else if (Input.IsKeyDown(ConsoleKey.X)) _pair.RotateCW();
+        }
+        else
+        {
+            if (Input.IsKeyDown(ConsoleKey.Enter))
+            {
+                Reset();
+            }
+        }
+    }
+
+    private void Reset()
+    {
+        _score.Initialize();
+        for (int i = 0; i < 6; i++)
+        {
+            foreach (var puyo in _board[i])
+            {
+                _pool.ReturnPuyo(puyo);
+            }
+        }
+        _inProgress = false;
+        _isGameOver = false;
     }
 }
