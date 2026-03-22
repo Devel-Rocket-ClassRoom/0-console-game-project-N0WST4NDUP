@@ -7,6 +7,7 @@ public class PlayScene : Scene
 {
     private Board _board;
     private PuyoPool _pool;
+    private Score _score;
 
     private bool _inProgress;
     private bool _isGameOver;
@@ -22,6 +23,10 @@ public class PlayScene : Scene
     {
         _board = new(this);
         AddGameObject(_board);
+
+        _score = new(this, _board.EndWidth + 3, _board.StartHeight + 3);
+        _score.Initialize();
+        AddGameObject(_score);
 
         _pool = new(this);
         _pool.Initialize(100, _board);
@@ -48,8 +53,12 @@ public class PlayScene : Scene
             }
             else if (ChainOfPuyos.Count > 0)
             {
+                _processCount++;
+
                 foreach (var chain in ChainOfPuyos)
                 {
+                    _score.SetScore(chain.Count, _processCount);
+
                     foreach (var puyo in chain)
                     {
                         _board[puyo.Line].Remove(puyo);
@@ -70,8 +79,6 @@ public class PlayScene : Scene
                     }
                     _afterProcessLine[i] = false;
                 }
-
-                _processCount++;
             }
             else
             {
@@ -115,8 +122,11 @@ public class PlayScene : Scene
         buffer.WriteText(_board.EndWidth + 3, _board.EndHeight - 2, "이동:←,→", ConsoleColor.White);
         buffer.WriteText(_board.EndWidth + 3, _board.EndHeight - 1, "회전:Z,X", ConsoleColor.White);
         buffer.WriteText(_board.EndWidth + 3, _board.EndHeight, "종료:ESC", ConsoleColor.White);
+
         DrawGameObjects(buffer);
-        buffer.DrawBox(_board.StartWidth, _board.StartHeight - 3, _board.StartWidth, _board.StartHeight - 1, ' ', ConsoleColor.White); // 내부 버퍼공간 가리기용
+
+        // 내부 버퍼공간 가리기용
+        buffer.DrawBox(_board.StartWidth, _board.StartHeight - 3, 6, 2, ' ', ConsoleColor.White);
     }
 
     private void HandleInput()

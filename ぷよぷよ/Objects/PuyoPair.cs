@@ -21,7 +21,7 @@ public class PuyoPair
         if (_isVertical) { targetPuyo = Pivot.Position.Y > Sub.Position.Y ? Pivot : Sub; }
         else { targetPuyo = board[Pivot.Line].Count > board[Sub.Line].Count ? Pivot : Sub; }
 
-        var newPos = (x: targetPuyo.Position.X, y: targetPuyo.Position.Y + 1);
+        var newPos = (x: targetPuyo.Position.X, y: targetPuyo.Position.Y + 2);
         if (targetPuyo.MoveCheck(newPos))
         {
             Pivot.SetPosition(Pivot.Position.X, Pivot.Position.Y + 1);

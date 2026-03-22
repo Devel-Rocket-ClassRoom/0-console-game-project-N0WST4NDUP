@@ -8,7 +8,7 @@ public class PuyoPuyoApp : GameApp
 
     private readonly SceneManager<Scene> _scenes = new();
 
-    public PuyoPuyoApp(int width = 50, int height = 20) : base(width, height) { }
+    public PuyoPuyoApp(int width = 100, int height = 20) : base(width, height) { }
 
     protected override void Initialize()
     {
