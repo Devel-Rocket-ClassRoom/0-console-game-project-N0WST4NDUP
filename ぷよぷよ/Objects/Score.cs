@@ -20,7 +20,6 @@ public class Score : GameObject
     public override void Draw(ScreenBuffer buffer)
     {
         buffer.WriteText(_x, _y, $"점수:{_score}");
-        buffer.WriteText(_x, _y + 1, $"최고 점수:{_score}");
     }
 
     public void Initialize()

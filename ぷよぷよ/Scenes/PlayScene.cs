@@ -41,10 +41,9 @@ public class PlayScene : Scene
 
     public override void Update(float deltaTime)
     {
-        HandleInput();
-
         if (_isGameOver) return;
 
+        HandleInput();
         UpdateGameObjects(deltaTime);
 
         if (_inProgress)
@@ -107,16 +106,16 @@ public class PlayScene : Scene
         if (!_isGameOver && _pair is not null && _pair.Pivot.CanMove && _pair.Sub.CanMove)
         {
             buffer.SetCell(
-                    _pair.Pivot.Position.X, _board.EndHeight - _board[_pair.Pivot.Line].Count, '⊙', ConsoleColor.DarkGray);
+                    _pair.Pivot.Position.X, _board.EndHeight - _board[_pair.Pivot.Line].Count, '○', ConsoleColor.DarkGray);
             if (_isVertical)
             {
                 buffer.SetCell(
-                    _pair.Sub.Position.X, _board.EndHeight - _board[_pair.Sub.Line].Count - 1, '⊙', ConsoleColor.DarkGray);
+                    _pair.Sub.Position.X, _board.EndHeight - _board[_pair.Sub.Line].Count - 1, '○', ConsoleColor.DarkGray);
             }
             else
             {
                 buffer.SetCell(
-                    _pair.Sub.Position.X, _board.EndHeight - _board[_pair.Sub.Line].Count, '⊙', ConsoleColor.DarkGray);
+                    _pair.Sub.Position.X, _board.EndHeight - _board[_pair.Sub.Line].Count, '○', ConsoleColor.DarkGray);
             }
         }
         buffer.WriteText(_board.EndWidth + 3, _board.EndHeight - 2, "이동:←,→", ConsoleColor.White);
@@ -131,7 +130,6 @@ public class PlayScene : Scene
         if (_isGameOver)
         {
             buffer.WriteText(7, 8, "Game Over", ConsoleColor.DarkRed);
-            buffer.WriteText(4, 9, "ENTER to Restart.");
         }
     }
 
